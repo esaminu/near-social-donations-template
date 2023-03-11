@@ -1,0 +1,19 @@
+{
+  "name": "donation-js",
+  "version": "1.0.0",
+  "license": "(MIT AND Apache-2.0)",
+  "scripts": {
+    "deploy": "cd contract && npm run deploy",
+    "build:widget": "sed \"s/%DONATION_CONTRACT_ACCOUNT_ID%/$DONATION_CONTRACT/g\" near-social-frontend/index.jsx > dist/index.jsx",
+    "build": "npm run build:contract && npm run build:widget",
+    "build:contract": "cd contract && npm run build",
+    "test": "npm run build:contract && npm run test:unit && npm run test:integration && npm run test:e2e",
+    "test:unit": "cd contract && npm test",
+    "test:integration": "cd integration-tests && npm test -- -- \"./contract/build/contract.wasm\"",
+    "postinstall": "cd integration-tests && npm install && cd .. && cd contract && npm install"
+  },
+  "devDependencies": {
+    "near-cli": "^3.3.0"
+  },
+  "dependencies": {}
+}

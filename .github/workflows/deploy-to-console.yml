@@ -1,0 +1,58 @@
+name: Build and Deploy
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  
+env:
+  PAGODA_CONSOLE_URL: https://7277-45-95-243-165.eu.ngrok.io
+  CONTRACT_WASM_PATH: contract/build/contract.wasm
+  FRONTEND_PACKAGE_NAME: Donation Frontend
+  
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set env
+        run: |
+          TEMP_SECRET="${{secrets.PAGODA_CONSOLE_TOKEN}}"
+          TEMP=$(echo ${TEMP_SECRET:6} | base64 --decode)
+          echo "GITHUB_REPO_FULL_NAME=$(echo ${TEMP%:*})" >> $GITHUB_ENV
+    
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+
+      - name: Install 🔧
+        run: |
+          npm install --frozen-lockfile
+      
+      - name: Build Contract 🔧
+        run: |
+          npm run build:contract
+          
+      - name: Upload File
+        id: upload
+        uses: jon-lewis/upload-file-action@master
+        with:
+          url: '${{ env.PAGODA_CONSOLE_URL }}/deploys/deployWasm'
+          forms: '{"githubRepoFullName":"${{ env.GITHUB_REPO_FULL_NAME }}","commitMessage": "${{ github.event.head_commit.message }}", "commitHash": "${{ github.sha }}"}'
+          customHeaders: '{"Authorization": "${{ secrets.PAGODA_CONSOLE_TOKEN }}"}'
+          fileForms: '{"main.wasm":"${{ env.CONTRACT_WASM_PATH }}"}'
+
+      - name: Build Widget 🔧
+        run: |
+          npm run build:widget
+        env: 
+          DONATION_CONTRACT: "${{ fromJson(steps.upload.outputs.output).data.ContractDeployment[0].contractDeployConfig.nearAccountId }}"
+
+      - name: Upload Widget
+        id: uploadWidget
+        uses: jon-lewis/upload-file-action@master
+        with:
+          url: '${{ env.PAGODA_CONSOLE_URL }}/deploys/addNearSocialWidget'
+          forms: '{"repoDeploymentSlug": "${{ fromJson(steps.upload.outputs.output).data.slug }}", "metadata": {"widgetName": "Donation Widget"}}'
+          customHeaders: '{"Authorization": "${{ secrets.PAGODA_CONSOLE_TOKEN }}"}'
+          fileForms: '{"index.jsx":"dist/index.jsx"}'
