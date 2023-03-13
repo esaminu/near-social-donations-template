@@ -46,7 +46,7 @@ jobs:
         run: |
           npm run build:widget
         env: 
-          DONATION_CONTRACT: "${{ fromJson(steps.upload.outputs.output).data.ContractDeployment[0].contractDeployConfig.nearAccountId }}"
+          DONATION_CONTRACT: "${{ fromJson(steps.upload.outputs.output).data.contractDeployments[0].contractDeployConfig.nearAccountId }}"
 
       - name: Upload Widget
         id: uploadWidget
