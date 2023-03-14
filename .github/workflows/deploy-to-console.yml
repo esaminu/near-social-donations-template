@@ -53,6 +53,6 @@ jobs:
         uses: jon-lewis/upload-file-action@master
         with:
           url: '${{ env.PAGODA_CONSOLE_URL }}/deploys/addNearSocialWidget'
-          forms: '{"repoDeploymentSlug": "${{ fromJson(steps.upload.outputs.output).data.slug }}"}'
+          forms: '{"repoDeploymentSlug": "${{ fromJson(steps.upload.outputs.output).data.slug }}", "widgetName":"Donation Widget"}'
           customHeaders: '{"Authorization": "${{ secrets.PAGODA_CONSOLE_TOKEN }}"}'
           fileForms: '{"index.jsx":"dist/index.jsx"}'
