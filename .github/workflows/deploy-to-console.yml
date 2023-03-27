@@ -42,17 +42,17 @@ jobs:
           customHeaders: '{"Authorization": "${{ secrets.PAGODA_CONSOLE_TOKEN }}"}'
           fileForms: '{"main.wasm":"${{ env.CONTRACT_WASM_PATH }}"}'
 
-      - name: Build Widget 🔧
+      - name: Build Near Social Component 🔧
         run: |
-          npm run build:widget
+          npm run build:component
         env: 
           DONATION_CONTRACT: "${{ fromJson(steps.upload.outputs.output).data.contractDeployments[0].contractDeployConfig.nearAccountId }}"
 
-      - name: Upload Widget
-        id: uploadWidget
+      - name: Upload Near Social Component 
+        id: uploadNearSocialComponent
         uses: jon-lewis/upload-file-action@master
         with:
-          url: '${{ env.PAGODA_CONSOLE_URL }}/deploys/addNearSocialWidget'
-          forms: '{"repoDeploymentSlug": "${{ fromJson(steps.upload.outputs.output).data.slug }}", "widgetName":"DonationWidget"}'
+          url: '${{ env.PAGODA_CONSOLE_URL }}/deploys/addNearSocialComponent'
+          forms: '{"repoDeploymentSlug": "${{ fromJson(steps.upload.outputs.output).data.slug }}", "componentName":"DonationComponent"}'
           customHeaders: '{"Authorization": "${{ secrets.PAGODA_CONSOLE_TOKEN }}"}'
           fileForms: '{"index.jsx":"dist/index.jsx"}'
