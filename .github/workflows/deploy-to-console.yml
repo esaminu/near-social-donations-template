@@ -68,7 +68,7 @@ jobs:
           url: '${{ env.PAGODA_CONSOLE_URL }}/deploys/contractDeployConfigs'
           method: 'POST'
           customHeaders: '{"Authorization": "${{ secrets.PAGODA_CONSOLE_TOKEN }}"}'
-          data: '{"repoDeploymentSlug":"${{fromJson(steps.add-repo-deployment.outputs.response).repoDeploymentSlug}}"}'
+          data: '{"repoDeploymentSlug":"${{ fromJson(steps.add-repo-deployment.outputs.response).repoDeploymentSlug }}"}'
 
       - name: Build Near Social Component 🔧
         run: |
@@ -81,6 +81,6 @@ jobs:
         uses: jon-lewis/upload-file-action@master
         with:
           url: '${{ env.PAGODA_CONSOLE_URL }}/deploys/addNearSocialComponentDeployment'
-          forms: '{"repoDeploymentSlug": "${{ fromJson(steps.upload.outputs.output).data.slug }}", "componentName":"DonationComponent"}'
+          forms: '{"repoDeploymentSlug": "${{ fromJson(steps.add-repo-deployment.outputs.response).repoDeploymentSlug }}", "componentName":"DonationComponent"}'
           customHeaders: '{"Authorization": "${{ secrets.PAGODA_CONSOLE_TOKEN }}"}'
           fileForms: '{"index.jsx":"dist/index.jsx"}'
