@@ -55,7 +55,7 @@ jobs:
         run: |
           npm run build:component
         env: 
-          DONATION_CONTRACT: "${{ fromJson(steps.upload.upload.outputs.output).data['contract.wasm'].nearAccountId }}"
+          DONATION_CONTRACT: "${{ fromJson(steps.upload.outputs.output).data['contract.wasm'].nearAccountId }}"
 
       - name: Upload Near Social Component 
         id: uploadNearSocialComponent
