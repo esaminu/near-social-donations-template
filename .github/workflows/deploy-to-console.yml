@@ -49,7 +49,7 @@ jobs:
         with:
           url: '${{ env.PAGODA_CONSOLE_URL }}/deploys/addRepoDeployment'
           method: 'POST'
-          customHeaders: '{"Authorization": "${{ env.FINAL_PAGODA_TOKEN }}"}'
+          customHeaders: '{"Authorization": "${{ secrets.PAGODA_CONSOLE_TOKEN }}"}'
           data: '{"githubRepoFullName":"${{ env.GITHUB_REPO_FULL_NAME }}","commitMessage": "${{ github.event.head_commit.message }}", "commitHash": "${{ github.sha }}"}'
           
       - name: Upload File
@@ -67,7 +67,7 @@ jobs:
         with:
           url: '${{ env.PAGODA_CONSOLE_URL }}/contractDeployConfigs'
           method: 'POST'
-          customHeaders: '{"Authorization": "${{ env.FINAL_PAGODA_TOKEN }}"}'
+          customHeaders: '{"Authorization": "${{ secrets.PAGODA_CONSOLE_TOKEN }}"}'
           data: '{"repoDeploymentSlug":"${{fromJson(steps.add-repo-deployment.outputs.response).repoDeploymentSlug}}"}'
 
       - name: Build Near Social Component 🔧
