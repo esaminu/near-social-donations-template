@@ -25,6 +25,16 @@ jobs:
         with:
           node-version: "18.x"
 
+      - name: Cache node modules
+        id: cache-npm
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+
       - name: Install 🔧
         run: |
           npm install --frozen-lockfile
@@ -32,27 +42,45 @@ jobs:
       - name: Build Contract 🔧
         run: |
           npm run build:contract
+
+      - name: Add repo deployment
+        id: add-repo-deployment
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: '${{ env.PAGODA_CONSOLE_URL }}/deploys/addRepoDeployment'
+          method: 'POST'
+          customHeaders: '{"Authorization": "${{ env.FINAL_PAGODA_TOKEN }}"}'
+          data: '{"githubRepoFullName":"${{ env.GITHUB_REPO_FULL_NAME }}","commitMessage": "${{ github.event.head_commit.message }}", "commitHash": "${{ github.sha }}"}'
           
       - name: Upload File
         id: upload
         uses: jon-lewis/upload-file-action@master
         with:
-          url: '${{ env.PAGODA_CONSOLE_URL }}/deploys/deployWasm'
-          forms: '{"githubRepoFullName":"${{ env.GITHUB_REPO_FULL_NAME }}","commitMessage": "${{ github.event.head_commit.message }}", "commitHash": "${{ github.sha }}"}'
+          url: '${{ env.PAGODA_CONSOLE_URL }}/deploys/addContractDeployment'
+          forms: '{"repoDeploymentSlug":"${{ fromJson(steps.add-repo-deployment.outputs.response).repoDeploymentSlug }}"}'
           customHeaders: '{"Authorization": "${{ secrets.PAGODA_CONSOLE_TOKEN }}"}'
           fileForms: '{"main.wasm":"${{ env.CONTRACT_WASM_PATH }}"}'
+
+      - name: Fetch account ids
+        id: fetch-account-ids
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: '${{ env.PAGODA_CONSOLE_URL }}/contractDeployConfigs'
+          method: 'POST'
+          customHeaders: '{"Authorization": "${{ env.FINAL_PAGODA_TOKEN }}"}'
+          data: '{"repoDeploymentSlug":"${{fromJson(steps.add-repo-deployment.outputs.response).repoDeploymentSlug}}"}'
 
       - name: Build Near Social Component 🔧
         run: |
           npm run build:component
         env: 
-          DONATION_CONTRACT: "${{ fromJson(steps.upload.outputs.output).data.contractDeployments[0].contractDeployConfig.nearAccountId }}"
+          DONATION_CONTRACT: "${{ fromJson(steps.fetch-account-ids.outputs.response)['contract.wasm'].nearAccountId }}"
 
       - name: Upload Near Social Component 
         id: uploadNearSocialComponent
         uses: jon-lewis/upload-file-action@master
         with:
-          url: '${{ env.PAGODA_CONSOLE_URL }}/deploys/addNearSocialComponent'
+          url: '${{ env.PAGODA_CONSOLE_URL }}/deploys/addNearSocialComponentDeployment'
           forms: '{"repoDeploymentSlug": "${{ fromJson(steps.upload.outputs.output).data.slug }}", "componentName":"DonationComponent"}'
           customHeaders: '{"Authorization": "${{ secrets.PAGODA_CONSOLE_TOKEN }}"}'
           fileForms: '{"index.jsx":"dist/index.jsx"}'
