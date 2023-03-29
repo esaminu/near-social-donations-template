@@ -65,7 +65,7 @@ jobs:
         id: fetch-account-ids
         uses: fjogeleit/http-request-action@v1
         with:
-          url: '${{ env.PAGODA_CONSOLE_URL }}/contractDeployConfigs'
+          url: '${{ env.PAGODA_CONSOLE_URL }}/deploys/contractDeployConfigs'
           method: 'POST'
           customHeaders: '{"Authorization": "${{ secrets.PAGODA_CONSOLE_TOKEN }}"}'
           data: '{"repoDeploymentSlug":"${{fromJson(steps.add-repo-deployment.outputs.response).repoDeploymentSlug}}"}'
